@@ -41,11 +41,25 @@ export class CalculatePriceUseCase {
         return total;
     }
 
+    // Test 4 : après refactorisation
+    // Use case : CalculatePriceUseCase { garde minOrder extraite dans isApplicable() }
     private applyDiscount(total: number, discount: Discount, products: Product[]): number {
+        if (!this.isApplicable(total, discount)) {
+            return total;
+        }
+
         if (discount.type === 'PERCENTAGE' && discount.value !== undefined) {
             return total - (total * discount.value) / 100;
         }
+
         return total;
+    }
+
+    private isApplicable(total: number, discount: Discount): boolean {
+        if (discount.minOrder !== undefined && total < discount.minOrder) {
+            return false;
+        }
+        return true;
     }
 
     private computeSubtotal(products: Product[]): number {

@@ -55,5 +55,22 @@ describe('CalculatePriceUseCase', () => {
         expect(total).toBe(90); // 100 - 10%
     });
 
+    // Test 4 : ne pas appliquer la réduction si le seuil n'est pas atteint
+    it('should not apply percentage discount if order is below minOrder', async () => {
+        reductionGateway.feed({
+            code: 'DISCOUNTPERCENT10',
+            type: 'PERCENTAGE',
+            value: 10,
+            minOrder: 30,
+        });
+        const products: Product[] = [
+            { name: 'T-shirt', price: 20, quantity: 1, type: 'TSHIRT' },
+        ];
+
+        const total = await calculatePrice.execute(products, ['DISCOUNTPERCENT10']);
+
+        expect(total).toBe(20); // seuil 30€ non atteint → pas de réduction
+    });
+
 });
 
