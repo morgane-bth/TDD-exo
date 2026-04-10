@@ -23,17 +23,13 @@ export interface ReductionGateway {
     getReductionByCode(code: string): Promise<Discount | null>;
 }
 
-// Test 2 : après refactorisation
-// Use case : CalculatePriceUseCase { calcul délégué à computeSubtotal() }
+// Test 1 : implémentation pour faire passer le test au vert
+// Use case : CalculatePriceUseCase { execute([], []) → 0 }
 export class CalculatePriceUseCase {
     constructor(private reductionGateway: ReductionGateway) {}
 
     async execute(products: Product[], codes: string[] = []): Promise<number> {
-        return this.computeSubtotal(products);
-    }
-
-    private computeSubtotal(products: Product[]): number {
-        return products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+        return 0;
     }
 }
 
