@@ -24,5 +24,15 @@ describe('CalculatePriceUseCase', () => {
         expect(total).toBe(0);
     });
 
+    //Test 2 : somme du panier sans réduction
+    it('should return the sum of all products without discounts', async () => {
+        const products: Product[] = [
+            { name: 'T-shirt', quantity: 2, type: 'TSHIRT', price: 20 },
+            { name: 'Pull', quantity: 1, type: 'PULL', price: 50 },
+        ];
+        const total = await calculatePrice.execute(products, []);
+        expect(total).toBe(90);
+    })
+
 });
 
