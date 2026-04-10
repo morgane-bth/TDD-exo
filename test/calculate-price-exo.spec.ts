@@ -88,5 +88,21 @@ describe('CalculatePriceUseCase', () => {
         expect(total).toBe(70); // 100 - 30€
     });
 
+    // Test 6: réduction fixe qui ne passe pas en dessous de 1€
+    it('should not apply fixed discount below 1€', async () => {
+        reductionGateway.feed({
+            code: 'DISCOUNTEURO30',
+            type: 'FIXED',
+            value: 30,
+        });
+        const products: Product[] = [
+            { name: 'T-shirt', price: 10, quantity: 1, type: 'TSHIRT' },
+        ];
+
+        const total = await calculatePrice.execute(products, ['DISCOUNTEURO30']);
+
+        expect(total).toBe(1); // 10 - 30 = -20 → plafonné à 1€
+    });
+
 });
 

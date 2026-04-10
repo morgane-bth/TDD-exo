@@ -40,9 +40,11 @@ class PercentageDiscountStrategy implements DiscountStrategy {
 }
 
 // --- Stratégie FIXED ---
+const MIN_PRICE = 1;
+
 class FixedDiscountStrategy implements DiscountStrategy {
     apply(total: number, products: Product[], discount: Discount): number {
-        return total - discount.value!;
+        return Math.max(MIN_PRICE, total - discount.value!);
     }
 }
 
