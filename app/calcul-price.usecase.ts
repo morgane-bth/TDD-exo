@@ -24,10 +24,36 @@ export interface ReductionGateway {
 
 }
 
-// Test 3 : après refactorisation
-// Use case : CalculatePriceUseCase { apply discount délégué à applyDiscount() }
+// Test 5 : après refactorisation → Pattern Strategy
+// Use case : CalculatePriceUseCase { chaque type de réduction = une Strategy }
+
+// --- Interface Strategy ---
+interface DiscountStrategy {
+    apply(total: number, products: Product[], discount: Discount): number;
+}
+
+// --- Stratégie PERCENTAGE ---
+class PercentageDiscountStrategy implements DiscountStrategy {
+    apply(total: number, products: Product[], discount: Discount): number {
+        return total - (total * discount.value!) / 100;
+    }
+}
+
+// --- Stratégie FIXED ---
+class FixedDiscountStrategy implements DiscountStrategy {
+    apply(total: number, products: Product[], discount: Discount): number {
+        return total - discount.value!;
+    }
+}
+
+// --- Use case mis à jour ---
 export class CalculatePriceUseCase {
     constructor(private reductionGateway: ReductionGateway) {}
+
+    private strategies: Record<string, DiscountStrategy> = {
+        PERCENTAGE: new PercentageDiscountStrategy(),
+        FIXED:      new FixedDiscountStrategy(),
+    };
 
     async execute(products: Product[], codes: string[] = []): Promise<number> {
         let total = this.computeSubtotal(products);
@@ -41,18 +67,15 @@ export class CalculatePriceUseCase {
         return total;
     }
 
-    // Test 4 : après refactorisation
-    // Use case : CalculatePriceUseCase { garde minOrder extraite dans isApplicable() }
     private applyDiscount(total: number, discount: Discount, products: Product[]): number {
         if (!this.isApplicable(total, discount)) {
             return total;
         }
 
-        if (discount.type === 'PERCENTAGE' && discount.value !== undefined) {
-            return total - (total * discount.value) / 100;
-        }
+        const strategy = this.strategies[discount.type];
+        if (!strategy) return total;
 
-        return total;
+        return strategy.apply(total, products, discount);
     }
 
     private isApplicable(total: number, discount: Discount): boolean {

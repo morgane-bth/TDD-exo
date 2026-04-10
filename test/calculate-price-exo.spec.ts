@@ -72,5 +72,21 @@ describe('CalculatePriceUseCase', () => {
         expect(total).toBe(20); // seuil 30€ non atteint → pas de réduction
     });
 
+    //Test 5 : appliquer une réduction de 30€ sur le panier
+    it('should apply a fixed discount on total', async () => {
+        reductionGateway.feed({
+            code: 'DISCOUNTEURO30',
+            type: 'FIXED',
+            value: 30,
+        });
+        const products: Product[] = [
+            { name: 'T-shirt', price: 100, quantity: 1, type: 'TSHIRT' },
+        ];
+
+        const total = await calculatePrice.execute(products, ['DISCOUNTEURO30']);
+
+        expect(total).toBe(70); // 100 - 30€
+    });
+
 });
 
