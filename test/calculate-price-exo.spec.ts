@@ -2,10 +2,15 @@ import { CalculatePriceUseCase } from "../app/calcul-price.usecase";
 import type { Product } from "../app/calcul-price.usecase";
 import {describe} from "vitest";
 
-// STUB — remplace le gateway, retourne ce qu'on lui dit
 class StubReductionGateway implements ReductionGateway {
-    async getReductionByCode(code: string) {
-        return null;
+    private reductions = new Map<string, Discount>();
+
+    feed(discount: Discount) {
+        this.reductions.set(discount.code, discount);
+    }
+
+    async getReductionByCode(code: string): Promise<Discount | null> {
+        return this.reductions.get(code) ?? null;
     }
 }
 
@@ -33,6 +38,22 @@ describe('CalculatePriceUseCase', () => {
         const total = await calculatePrice.execute(products, []);
         expect(total).toBe(90);
     })
+
+    // Test 3 : appliquer une réduction de 10% sur le panier
+    it('should apply a percentage discount on total', async () => {
+        reductionGateway.feed({
+            code: 'DISCOUNTPERCENT10',
+            type: 'PERCENTAGE',
+            value: 10,
+        });
+        const products: Product[] = [
+            { name: 'T-shirt', price: 100, quantity: 1, type: 'TSHIRT' },
+        ];
+
+        const total = await calculatePrice.execute(products, ['DISCOUNTPERCENT10']);
+
+        expect(total).toBe(90); // 100 - 10%
+    });
 
 });
 

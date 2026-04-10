@@ -21,15 +21,31 @@ export type Discount = {
 
 export interface ReductionGateway {
     getReductionByCode(code: string): Promise<Discount | null>;
+
 }
 
-// Test 2 : implémentation pour faire passer le test au vert
-// Use case : CalculatePriceUseCase { execute → somme brute }
+// Test 3 : après refactorisation
+// Use case : CalculatePriceUseCase { apply discount délégué à applyDiscount() }
 export class CalculatePriceUseCase {
     constructor(private reductionGateway: ReductionGateway) {}
 
     async execute(products: Product[], codes: string[] = []): Promise<number> {
-        return this.computeSubtotal(products);
+        let total = this.computeSubtotal(products);
+
+        for (const code of codes) {
+            const discount = await this.reductionGateway.getReductionByCode(code);
+            if (!discount) continue;
+            total = this.applyDiscount(total, discount, products);
+        }
+
+        return total;
+    }
+
+    private applyDiscount(total: number, discount: Discount, products: Product[]): number {
+        if (discount.type === 'PERCENTAGE' && discount.value !== undefined) {
+            return total - (total * discount.value) / 100;
+        }
+        return total;
     }
 
     private computeSubtotal(products: Product[]): number {
